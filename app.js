@@ -31,7 +31,7 @@ app.use(
 const corsOptions = {
   origin: function (origin, callback) {
     if (!origin) return callback(null, true) // mobile or curl
-    const allowed = NODE_ENV === 'production'
+    const allowed = NODE_ENV === 'development'
       ? [process.env.FRONTEND_URL /* add prod URLs */]
       : ['http://localhost:3000', 'http://localhost:5173', process.env.FRONTEND_URL]
     if (allowed.includes(origin)) callback(null, true)

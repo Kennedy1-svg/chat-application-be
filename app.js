@@ -32,22 +32,26 @@ const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:5173',
   process.env.FRONTEND_URL,
-  process.env.FRONTEND_PROD_URL // optional, for production
-].filter(Boolean) // remove undefined/null
+  process.env.FRONTEND_PROD_URL
+].filter(Boolean)
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true) // allow mobile/curl/postman
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) return callback(null, true)
 
-    const isAllowed = allowedOrigins.some(allowed => origin.startsWith(allowed))
-    if (isAllowed) callback(null, true)
-    else callback(new Error(`Not allowed by CORS: ${origin}`))
+    // Check for exact match
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true)
+    } else {
+      callback(new Error(`Not allowed by CORS: ${origin}`))
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 }
+
 app.use(cors(corsOptions))
-app.options('*', cors(corsOptions))
 // Body parsing (JSON) - keep for API
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true, limit: '10mb' }))

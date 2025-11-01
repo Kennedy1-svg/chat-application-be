@@ -1,0 +1,72 @@
+GET http://localhost:5371
+Accept: application/json        
+Content-Type: application/json
+
+###
+
+GET http://localhost:5371/api/docs
+Accept: application/json        
+Content-Type: application/json
+
+###
+GET http://localhost:5371/health
+Accept: application/json        
+Content-Type: application/json
+
+###
+POST http://localhost:5371/api/payment/initialize-payment     
+Content-Type: application/json
+
+{
+    "email": "kennyohia@gmail.com",
+    "amount": 4000
+}
+
+###
+GET http://localhost:5371/api/payment/verify-payment/c6ky086nm2
+Accept: application/json        
+Content-Type: application/json
+
+###
+POST http://localhost:5371/api/payment/send-virtual-copy
+Accept: application/json        
+Content-Type: application/json
+
+{
+    "email": "kennyohia@gmail.com",
+    "customerName": "Chimdinma Kennedy Ohia",
+    "paymentRef": "2fw5cpxiqo",
+    "title":  "Alter Ego"
+}
+
+###
+GET http://localhost:5371/api/payment/purchases/kennyohia@gmail.com
+
+###
+POST http://localhost:5371/api/payment/resend-virtual-copy
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "kennyohia@gmail.com",
+    "paymentRef": "e96dusb2md"
+}
+
+###
+###
+POST http://localhost:5371/api/payment/physical-order
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "kennyohia@gmail.com",
+    "paymentRef": "559vf37cup",
+    "title": "Alter Ego",
+    "deliveryLocation": "Lagos, Nigeria",
+    "deliveryFee": 2000,
+    "quantity": 1,
+    "customerName": "Chimdinma Kennedy Ohia"
+}
+
+      
+    

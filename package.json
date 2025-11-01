@@ -1,0 +1,93 @@
+{
+  "name": "chat-app-backend",
+  "version": "1.0.0",
+  "description": "Backend service for Chat Application",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "dev:watch": "nodemon --watch . --ext js,json --ignore node_modules/ --ignore temp/ app.js",
+    "build": "npm install --production",
+    "prod": "NODE_ENV=production node app.js",
+    "test": "jest --watchAll",
+    "test:ci": "jest --ci --coverage",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "cleanup": "node scripts/cleanup-temp.js",
+    "setup": "node scripts/setup.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js",
+    "format": "prettier --write ."
+  },
+  "author": {
+    "name": "Ohia Kennedy",
+    "email": "kennyohia@gmail.com"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "bcryptjs": "^2.4.3",
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.2.0",
+    "joi": "^17.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.8.7",
+    "morgan": "^1.10.1",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.10",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.13.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "eslint": "^8.52.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "jest": "^29.7.0",
+    "nodemon": "^3.0.1",
+    "prettier": "^3.6.2",
+    "supertest": "^6.3.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/",
+      "temp/",
+      "logs/",
+      "*.test.js"
+    ],
+    "watch": [
+      ".",
+      ".env"
+    ],
+    "ext": "js,json,env",
+    "delay": 1000,
+    "env": {
+      "NODE_ENV": "development"
+    }
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!node_modules/**",
+      "!coverage/**",
+      "!jest.config.js"
+    ]
+  }
+}

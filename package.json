@@ -11,7 +11,7 @@
     "prod": "NODE_ENV=production node app.js",
     "test": "jest --watchAll",
     "test:ci": "jest --ci --coverage",
-    "lint": "eslint . --ext .js",
+    "lint": "eslint",
     "lint:fix": "eslint . --ext .js --fix",
     "cleanup": "node scripts/cleanup-temp.js",
     "setup": "node scripts/setup.js",

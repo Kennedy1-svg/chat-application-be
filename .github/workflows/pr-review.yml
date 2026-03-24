@@ -27,7 +27,6 @@ jobs:
       # 4. Run PR Review script
       - name: PR Review Script
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/pr-review.js
 

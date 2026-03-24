@@ -60,75 +60,94 @@ function runPlato() {
   return platoReport
 }
 
-// Aggregate results into a report
-const report = `
-# Automated Code Quality Report
+// Build Markdown report natively via JS Rule Engine
+function buildMarkdownReport(eslintOutput, auditOutput, semgrepOutput, platoOutput) {
+  let md = '# 🤖 Automated Code Quality Report\n\n'
 
-## Linting Results
-${eslintReport.includes('error') ? 'Errors found:\n' + eslintReport : 'No linting errors found.'}
+  // ESLint
+  md += '## 🔍 Linting (ESLint)\n'
+  if (!eslintOutput || !eslintOutput.includes('error')) {
+    md += '✅ No linting errors found.\n\n'
+  } else {
+    // Truncate to avoid extremely long PR comments
+    md += `⚠️ **Linting errors found:**\n\`\`\`text\n${eslintOutput.substring(0, 1000)}${eslintOutput.length > 1000 ? '\n... (truncated)' : ''}\n\`\`\`\n\n`
+  }
 
-## Dependency Security Report
-${auditReport}
+  // npm audit
+  md += '## 🛡️ Dependency Security (npm audit)\n'
+  try {
+    const auditData = JSON.parse(auditOutput)
+    const v = auditData.metadata?.vulnerabilities
+    if (v && v.total > 0) {
+      md += `⚠️ **Found ${v.total} vulnerabilities**:\n- Critical: ${v.critical}\n- High: ${v.high}\n- Moderate: ${v.moderate}\n- Low: ${v.low}\n\n`
+    } else {
+      md += '✅ No vulnerabilities found.\n\n'
+    }
+  } catch (e) {
+    md += '⚠️ Could not parse npm audit JSON output.\n\n'
+  }
 
-## Code Complexity Report
-${runPlato()}
+  // Plato
+  md += '## 📊 Code Complexity (Plato)\n'
+  if (platoOutput.startsWith('Error') || platoOutput === 'No Plato report generated.') {
+    md += `⚠️ ${platoOutput}\n\n`
+  } else {
+    try {
+      const platoData = JSON.parse(platoOutput)
+      let totalMaintainability = 0
+      let count = 0
+      if (Array.isArray(platoData)) {
+        platoData.forEach((f) => {
+          if (f.complexity && f.complexity.maintainability) {
+            totalMaintainability += f.complexity.maintainability
+            count++
+          }
+        })
+      }
+      if (count > 0) {
+        md += `Average Maintainability Index: **${(totalMaintainability / count).toFixed(2)}** (Checked ${count} files)\n\n`
+      } else {
+        md += '✅ Plato run completed.\n\n'
+      }
+    } catch (e) {
+      md += '⚠️ Could not parse Plato JSON output.\n\n'
+    }
+  }
 
-## Static Analysis Report
-${runSemgrep()}
-`
+  // Semgrep
+  md += '## 🔐 Static Analysis (Semgrep)\n'
+  if (semgrepOutput.startsWith('Error') || semgrepOutput === 'No semgrep report generated.') {
+    md += `⚠️ ${semgrepOutput}\n\n`
+  } else {
+    try {
+      const semgrepData = JSON.parse(semgrepOutput)
+      const results = semgrepData.results || []
+      if (results.length > 0) {
+        md += `⚠️ **Found ${results.length} issues**:\n`
+        results.slice(0, 10).forEach((r) => {
+          md += `- **${r.check_id}** in \`${r.path}:${r.start.line}\`\n`
+        })
+        if (results.length > 10) md += `- ... and ${results.length - 10} more.\n`
+        md += '\n'
+      } else {
+        md += '✅ No static analysis issues found.\n\n'
+      }
+    } catch (e) {
+      md += '⚠️ Could not parse Semgrep JSON output.\n\n'
+    }
+  }
+
+  return md
+}
+
+const finalReportMarkdown = buildMarkdownReport(eslintReport, auditReport, runSemgrep(), runPlato())
 
 console.log('\n--- Final Report ---')
-console.log(report)
+console.log(finalReportMarkdown)
 
-async function generateOpenAIReportAndComment(reportContent) {
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
-    console.log('⚠️ OPENAI_API_KEY is not set. Skipping OpenAI report generation.')
-    return
-  }
-
-  console.log('🤖 Sending report to OpenAI for translation...')
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert code reviewer. You will be given an automated code quality report containing linting, dependency, complexity, and static analysis results. Your task is to translate this into a human-readable, professional, and concise PR review comment in Markdown format. Highlight critical issues, give brief actionable feedback, and provide an overall assessment.',
-          },
-          {
-            role: 'user',
-            content: reportContent,
-          },
-        ],
-      }),
-    })
-
-    if (!response.ok) {
-      const errorText = await response.text()
-      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`)
-    }
-
-    const data = await response.json()
-    const aiReport = data.choices[0].message.content
-
-    // Save report to file
-    fs.writeFileSync('pr-review-report.md', aiReport)
-    console.log('✅ OpenAI report generated and saved to pr-review-report.md!')
-
-    // Post comment to PR
-    await postCommentToPR(aiReport)
-  } catch (error) {
-    console.error('❌ Failed to generate OpenAI report:', error.message)
-  }
-}
+// Save report to file
+fs.writeFileSync('pr-review-report.md', finalReportMarkdown)
+console.log('✅ Markdown report generated and saved to pr-review-report.md!')
 
 async function postCommentToPR(commentBody) {
   const token = process.env.GITHUB_TOKEN
@@ -175,8 +194,7 @@ async function postCommentToPR(commentBody) {
   }
 }
 
-// Run the async functions and conclude the process
-generateOpenAIReportAndComment(report).then(() => {
+postCommentToPR(finalReportMarkdown).then(() => {
   console.log('\n🧹 Cleaning up report files...')
   if (fs.existsSync('semgrep-report.json')) {
     fs.rmSync('semgrep-report.json', { force: true })

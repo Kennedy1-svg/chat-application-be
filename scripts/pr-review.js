@@ -124,7 +124,7 @@ function buildMarkdownReport(eslintOutput, auditOutput, semgrepOutput, platoOutp
       const results = semgrepData.results || []
       if (results.length > 0) {
         md += `⚠️ **Found ${results.length} issues**:\n`
-        results.slice(0, 10).forEach((r) => {
+        results.forEach((r) => {
           md += `- **${r.check_id}** in \`${r.path}:${r.start.line}\`\n`
         })
         // if (results.length > 10) md += `- ... and ${results.length - 10} more.\n`

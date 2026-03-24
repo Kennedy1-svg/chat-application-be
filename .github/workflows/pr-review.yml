@@ -24,9 +24,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # 4. Run lint
-      - name: Run lint
-        run: npm run lint
+      # 4. Run PR Review script
+      - name: PR Review Script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/pr-review.js
 
       # 5. Build project
       - name: Build project

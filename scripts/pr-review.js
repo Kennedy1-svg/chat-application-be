@@ -127,7 +127,7 @@ function buildMarkdownReport(eslintOutput, auditOutput, semgrepOutput, platoOutp
         results.slice(0, 10).forEach((r) => {
           md += `- **${r.check_id}** in \`${r.path}:${r.start.line}\`\n`
         })
-        if (results.length > 10) md += `- ... and ${results.length - 10} more.\n`
+        // if (results.length > 10) md += `- ... and ${results.length - 10} more.\n`
         md += '\n'
       } else {
         md += '✅ No static analysis issues found.\n\n'

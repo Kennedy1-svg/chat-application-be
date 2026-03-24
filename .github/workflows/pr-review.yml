@@ -37,3 +37,11 @@ jobs:
       # 5. Build project
       - name: Build project
         run: npm run build
+
+      # 6. Upload PR Review Report (Fallback)
+      - name: Upload PR Review Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-review-report
+          path: pr-review-report.md

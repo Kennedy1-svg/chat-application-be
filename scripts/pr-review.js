@@ -94,18 +94,9 @@ function buildMarkdownReport(eslintOutput, auditOutput, semgrepOutput, platoOutp
   } else {
     try {
       const platoData = JSON.parse(platoOutput)
-      let totalMaintainability = 0
-      let count = 0
-      if (Array.isArray(platoData)) {
-        platoData.forEach((f) => {
-          if (f.complexity && f.complexity.maintainability) {
-            totalMaintainability += f.complexity.maintainability
-            count++
-          }
-        })
-      }
-      if (count > 0) {
-        md += `Average Maintainability Index: **${(totalMaintainability / count).toFixed(2)}** (Checked ${count} files)\n\n`
+      if (platoData.summary && platoData.summary.average && Array.isArray(platoData.reports) && platoData.reports.length > 0) {
+        const avgMaintainability = parseFloat(platoData.summary.average.maintainability).toFixed(2)
+        md += `Average Maintainability Index: **${avgMaintainability}** (Checked ${platoData.reports.length} files)\n\n`
       } else {
         md += '✅ Plato run completed.\n\n'
       }

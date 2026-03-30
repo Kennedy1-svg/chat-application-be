@@ -92,17 +92,17 @@ class ComicEmailService {
       // console.log('Running qpdf command:', cmd)
 
       // Run qpdf command
-      await new Promise((resolve, reject) => {
-        exec(cmd, (error, stdout, stderr) => {
-          if (error) {
-            console.error('❌ qpdf error:', stderr)
-            reject(new Error(stderr))
-          } else {
-            console.log('✅ PDF protected successfully!')
-            resolve()
-          }
-        })
-      })
+      // await new Promise((resolve, reject) => {
+      //   exec(cmd, (error, stdout, stderr) => {
+      //     if (error) {
+      //       console.error('❌ qpdf error:', stderr)
+      //       reject(new Error(stderr))
+      //     } else {
+      //       console.log('✅ PDF protected successfully!')
+      //       resolve()
+      //     }
+      //   })
+      // })
 
       // Optional verification: check file was written
       await fs.access(outputPath)
@@ -113,12 +113,12 @@ class ComicEmailService {
       console.error('Error protecting PDF:', error)
       return false
     }
-  }
 
-  generateEmailTemplate(customerName, comicTitle, password, paymentRef, downloadLink = '') {
-    const isLink = !!downloadLink
 
-    return `
+    generateEmailTemplate(customerName, comicTitle, password, paymentRef, downloadLink = '') {
+      const isLink = !!downloadLink
+
+      return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -233,7 +233,7 @@ class ComicEmailService {
           </div>
   
           ${isLink
-        ? `
+          ? `
               <div class="instructions">
                 <h3>🔗 Download Your Comic</h3>
                 <p>Your comic is too large to attach directly, so we've provided a secure download link below:</p>
@@ -241,7 +241,7 @@ class ComicEmailService {
                 <p class="warning">⚠️ This link may expire. Please download your comic promptly.</p>
               </div>
               `
-        : `
+          : `
               <div class="password-section">
                 <h3>🔐 Your Comic Access Password</h3>
                 <p>Your PDF is password-protected for security. Use this password to open your comic:</p>
@@ -259,7 +259,7 @@ class ComicEmailService {
                 </ol>
               </div>
               `
-      }
+        }
   
           <h3>💡 Tips for the Best Reading Experience</h3>
           <ul>
@@ -291,58 +291,58 @@ class ComicEmailService {
     </body>
     </html>
     `
-  }
+    }
 
   async sendVirtualCopy({ email, title, paymentRef, customerName = '' }) {
-    try {
-      const password = this.generatePassword(email, title, paymentRef);
-      if (!customerName) customerName = email.split('@')[0];
+      try {
+        const password = this.generatePassword(email, title, paymentRef);
+        if (!customerName) customerName = email.split('@')[0];
 
-      const comicPaths = this.comicPaths[title];
-      if (!comicPaths || (Array.isArray(comicPaths) && comicPaths.length === 0)) {
-        throw new Error(`Comic file(s) not found for: ${title}`);
-      }
+        const comicPaths = this.comicPaths[title];
+        if (!comicPaths || (Array.isArray(comicPaths) && comicPaths.length === 0)) {
+          throw new Error(`Comic file(s) not found for: ${title}`);
+        }
 
-      const attachments = [];
-      const tempPaths = [];
-      await fs.mkdir('./temp', { recursive: true });
+        const attachments = [];
+        const tempPaths = [];
+        await fs.mkdir('./temp', { recursive: true });
 
-      const files = Array.isArray(comicPaths) ? comicPaths : [comicPaths];
+        const files = Array.isArray(comicPaths) ? comicPaths : [comicPaths];
 
-      for (let i = 0; i < files.length; i++) {
-        const filePath = files[i];
-        const fileBaseName = path.basename(filePath, '.pdf').replace(/[^a-zA-Z0-9]/g, '_');
-        const protectedFileName = `${fileBaseName}_${paymentRef}.pdf`;
-        const protectedPath = path.join('./temp', protectedFileName);
+        for (let i = 0; i < files.length; i++) {
+          const filePath = files[i];
+          const fileBaseName = path.basename(filePath, '.pdf').replace(/[^a-zA-Z0-9]/g, '_');
+          const protectedFileName = `${fileBaseName}_${paymentRef}.pdf`;
+          const protectedPath = path.join('./temp', protectedFileName);
 
-        const protectionSuccess = await this.protectPDF(filePath, protectedPath, password);
-        if (!protectionSuccess) throw new Error(`Failed to protect PDF: ${fileBaseName}`);
+          const protectionSuccess = await this.protectPDF(filePath, protectedPath, password);
+          if (!protectionSuccess) throw new Error(`Failed to protect PDF: ${fileBaseName}`);
 
-        tempPaths.push(protectedPath);
-        attachments.push({
-          filename: `${fileBaseName}.pdf`,
-          path: protectedPath,
-          contentType: 'application/pdf',
-          cid: `comic-${fileBaseName}`,
-        });
-      }
+          tempPaths.push(protectedPath);
+          attachments.push({
+            filename: `${fileBaseName}.pdf`,
+            path: protectedPath,
+            contentType: 'application/pdf',
+            cid: `comic-${fileBaseName}`,
+          });
+        }
 
-      // Customer email
-      const htmlContent = this.generateEmailTemplate(customerName, title, password, paymentRef);
-      const mailOptions = {
-        from: { name: 'Symphonii Studios', address: process.env.EMAIL_USER },
-        to: email,
-        subject: `🎉 Your Digital Comic: ${title} - Symphonii Studios`,
-        html: htmlContent,
-        attachments: attachments,
-      };
+        // Customer email
+        const htmlContent = this.generateEmailTemplate(customerName, title, password, paymentRef);
+        const mailOptions = {
+          from: { name: 'Symphonii Studios', address: process.env.EMAIL_USER },
+          to: email,
+          subject: `🎉 Your Digital Comic: ${title} - Symphonii Studios`,
+          html: htmlContent,
+          attachments: attachments,
+        };
 
-      const info = await this.transporter.sendMail(mailOptions);
+        const info = await this.transporter.sendMail(mailOptions);
 
-      // Company notification (only if customer email was accepted)
-      if (info.accepted.includes(email)) {
-        const companyEmail = process.env.DELIVERY_PERSON_EMAIL || 'orders@symphoniistudios.com';
-        const companyVirtualCopyHtml = `
+        // Company notification (only if customer email was accepted)
+        if (info.accepted.includes(email)) {
+          const companyEmail = process.env.DELIVERY_PERSON_EMAIL || 'orders@symphoniistudios.com';
+          const companyVirtualCopyHtml = `
       <!DOCTYPE html>
       <html lang="en">
       <head><meta charset="UTF-8"><title>Virtual Copy Sent</title></head>
@@ -364,57 +364,57 @@ class ComicEmailService {
       </html>
       `;
 
-        const companyMail = {
-          from: { name: 'Symphonii Studios Orders', address: process.env.EMAIL_USER },
-          to: companyEmail,
-          subject: `✅ Virtual Copy Sent: ${title} for ${customerName}`,
-          html: companyVirtualCopyHtml,
+          const companyMail = {
+            from: { name: 'Symphonii Studios Orders', address: process.env.EMAIL_USER },
+            to: companyEmail,
+            subject: `✅ Virtual Copy Sent: ${title} for ${customerName}`,
+            html: companyVirtualCopyHtml,
+          };
+
+          await this.transporter.sendMail(companyMail);
+        }
+
+        // Clean temp files
+        await Promise.allSettled(tempPaths.map((file) => fs.unlink(file)));
+
+        return {
+          success: true,
+          messageId: info.messageId,
+          passwordHash: await bcrypt.hash(password, 12),
+          message: `Virtual copy${files.length > 1 ? ' copies' : ''} sent successfully`,
+          filesProcessed: files.length,
         };
-
-        await this.transporter.sendMail(companyMail);
+      } catch (error) {
+        return { success: false, error: error.message, message: 'Failed to send virtual copy' };
       }
-
-      // Clean temp files
-      await Promise.allSettled(tempPaths.map((file) => fs.unlink(file)));
-
-      return {
-        success: true,
-        messageId: info.messageId,
-        passwordHash: await bcrypt.hash(password, 12),
-        message: `Virtual copy${files.length > 1 ? ' copies' : ''} sent successfully`,
-        filesProcessed: files.length,
-      };
-    } catch (error) {
-      return { success: false, error: error.message, message: 'Failed to send virtual copy' };
     }
-  }
 
 
   // Send physical order confirmation
   async sendPhysicalOrderConfirmation({
-    email,
-    title,
-    paymentRef,
-    deliveryLocation,
-    customerName = '',
-    quantity = 1, // Default to 1 if not provided
-    deliveryCode,
-    receiptCode,
-  }) {
-    try {
-      if (!customerName) {
-        customerName = email.split('@')[0]
-      }
+      email,
+      title,
+      paymentRef,
+      deliveryLocation,
+      customerName = '',
+      quantity = 1, // Default to 1 if not provided
+      deliveryCode,
+      receiptCode,
+    }) {
+      try {
+        if (!customerName) {
+          customerName = email.split('@')[0]
+        }
 
-      // --- Confirmation Links ---
-      const baseUrl =
-        `${process.env.FRONTEND_URL}/comics/confirm-delivery` || 'https://yourapp.com/confirm'
+        // --- Confirmation Links ---
+        const baseUrl =
+          `${process.env.FRONTEND_URL}/comics/confirm-delivery` || 'https://yourapp.com/confirm'
 
-      // const customerLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${receiptCode}&type=customer&email=${encodeURIComponent(email)}`
-      const riderLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${deliveryCode}&type=rider&email=${encodeURIComponent(email)}`
+        // const customerLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${receiptCode}&type=customer&email=${encodeURIComponent(email)}`
+        const riderLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${deliveryCode}&type=rider&email=${encodeURIComponent(email)}`
 
-      // --- Email to customer ---
-      const htmlContent = `
+        // --- Email to customer ---
+        const htmlContent = `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -528,22 +528,22 @@ class ComicEmailService {
     </html>
     `
 
-      const mailOptions = {
-        from: {
-          name: 'Symphonii Studios',
-          address: process.env.EMAIL_USER,
-        },
-        to: email,
-        subject: `📦 Order Confirmation: ${title} - Symphonii Studios`,
-        html: htmlContent,
-      }
+        const mailOptions = {
+          from: {
+            name: 'Symphonii Studios',
+            address: process.env.EMAIL_USER,
+          },
+          to: email,
+          subject: `📦 Order Confirmation: ${title} - Symphonii Studios`,
+          html: htmlContent,
+        }
 
-      const info = await this.transporter.sendMail(mailOptions)
+        const info = await this.transporter.sendMail(mailOptions)
 
-      // --- Notification to delivery person ---
-      if (info.accepted.includes(email)) {
-        const deliveryEmail = process.env.DELIVERY_PERSON_EMAIL || 'deliveries@symphoniistudios.com'
-        const riderHtmlContent = `
+        // --- Notification to delivery person ---
+        if (info.accepted.includes(email)) {
+          const deliveryEmail = process.env.DELIVERY_PERSON_EMAIL || 'deliveries@symphoniistudios.com'
+          const riderHtmlContent = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -655,58 +655,58 @@ class ComicEmailService {
 </html>
 `
 
-        const deliveryMail = {
-          from: {
-            name: 'Symphonii Studios Orders',
-            address: process.env.EMAIL_USER,
-          },
-          to: deliveryEmail,
-          subject: `📦 New Order: ${title} for ${customerName}`,
-          html: riderHtmlContent,
+          const deliveryMail = {
+            from: {
+              name: 'Symphonii Studios Orders',
+              address: process.env.EMAIL_USER,
+            },
+            to: deliveryEmail,
+            subject: `📦 New Order: ${title} for ${customerName}`,
+            html: riderHtmlContent,
+          }
+
+          await this.transporter.sendMail(deliveryMail)
         }
+        console.log('✅ Physical order confirmation sent successfully:', info.messageId)
 
-        await this.transporter.sendMail(deliveryMail)
-      }
-      console.log('✅ Physical order confirmation sent successfully:', info.messageId)
-
-      return {
-        success: true,
-        messageId: info.messageId,
-        message: 'Physical order confirmation sent successfully',
-      }
-    } catch (error) {
-      console.error('Error sending physical order confirmation:', error)
-      return {
-        success: false,
-        error: error.message,
-        message: 'Failed to send physical order confirmation',
+        return {
+          success: true,
+          messageId: info.messageId,
+          message: 'Physical order confirmation sent successfully',
+        }
+      } catch (error) {
+        console.error('Error sending physical order confirmation:', error)
+        return {
+          success: false,
+          error: error.message,
+          message: 'Failed to send physical order confirmation',
+        }
       }
     }
-  }
 
   async sendDeliveryConfirmationToCustomer({
-    email,
-    title,
-    paymentRef,
-    deliveryLocation,
-    customerName = '',
-    quantity = 1, // Default to 1 if not provided
-    receiptCode,
-  }) {
-    try {
-      if (!customerName) {
-        customerName = email.split('@')[0]
-      }
+      email,
+      title,
+      paymentRef,
+      deliveryLocation,
+      customerName = '',
+      quantity = 1, // Default to 1 if not provided
+      receiptCode,
+    }) {
+      try {
+        if (!customerName) {
+          customerName = email.split('@')[0]
+        }
 
-      // --- Confirmation Links ---
-      const baseUrl =
-        `${process.env.FRONTEND_URL}/comics/confirm-delivery` || 'https://yourapp.com/confirm'
+        // --- Confirmation Links ---
+        const baseUrl =
+          `${process.env.FRONTEND_URL}/comics/confirm-delivery` || 'https://yourapp.com/confirm'
 
-      const customerLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${receiptCode}&type=customer&email=${encodeURIComponent(email)}`
-      // const riderLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${deliveryCode}&type=rider&email=${encodeURIComponent(email)}`
+        const customerLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${receiptCode}&type=customer&email=${encodeURIComponent(email)}`
+        // const riderLink = `${baseUrl}?ref=${encodeURIComponent(paymentRef)}&code=${deliveryCode}&type=rider&email=${encodeURIComponent(email)}`
 
-      // --- Email to customer ---
-      const htmlContent = `
+        // --- Email to customer ---
+        const htmlContent = `
     <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -818,51 +818,51 @@ class ComicEmailService {
 
     `
 
-      const mailOptions = {
-        from: {
-          name: 'Symphonii Studios',
-          address: process.env.EMAIL_USER,
-        },
-        to: email,
-        subject: `📦 Delivery Confirmation: ${title} - Symphonii Studios`,
-        html: htmlContent,
-      }
+        const mailOptions = {
+          from: {
+            name: 'Symphonii Studios',
+            address: process.env.EMAIL_USER,
+          },
+          to: email,
+          subject: `📦 Delivery Confirmation: ${title} - Symphonii Studios`,
+          html: htmlContent,
+        }
 
-      const info = await this.transporter.sendMail(mailOptions)
+        const info = await this.transporter.sendMail(mailOptions)
 
-      // --- Notification to delivery person ---
+        // --- Notification to delivery person ---
 
-      console.log('✅ Physical order delivery confirmation sent successfully:', info.messageId)
+        console.log('✅ Physical order delivery confirmation sent successfully:', info.messageId)
 
-      return {
-        success: true,
-        messageId: info.messageId,
-        message: 'Physical order confirmation sent successfully',
-      }
-    } catch (error) {
-      console.error('Error sending physical order confirmation:', error)
-      return {
-        success: false,
-        error: error.message,
-        message: 'Failed to send physical order confirmation',
+        return {
+          success: true,
+          messageId: info.messageId,
+          message: 'Physical order confirmation sent successfully',
+        }
+      } catch (error) {
+        console.error('Error sending physical order confirmation:', error)
+        return {
+          success: false,
+          error: error.message,
+          message: 'Failed to send physical order confirmation',
+        }
       }
     }
-  }
 
   async sendCustomerDeliveryConfirmed({
-    email,
-    title,
-    paymentRef,
-    deliveryLocation,
-    customerName = '',
-    quantity = 1,
-  }) {
-    try {
-      if (!customerName) {
-        customerName = email.split('@')[0]
-      }
+      email,
+      title,
+      paymentRef,
+      deliveryLocation,
+      customerName = '',
+      quantity = 1,
+    }) {
+      try {
+        if (!customerName) {
+          customerName = email.split('@')[0]
+        }
 
-      const htmlContent = `
+        const htmlContent = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -943,46 +943,46 @@ class ComicEmailService {
       </html>
     `
 
-      const mailOptions = {
-        from: {
-          name: 'Symphonii Studios System',
-          address: process.env.EMAIL_USER,
-        },
-        to: process.env.DELIVERY_PERSON_EMAIL, // 👈 notify your own team
-        subject: `✅ Customer Confirmed Delivery - ${title} [${paymentRef}]`,
-        html: htmlContent,
-      }
+        const mailOptions = {
+          from: {
+            name: 'Symphonii Studios System',
+            address: process.env.EMAIL_USER,
+          },
+          to: process.env.DELIVERY_PERSON_EMAIL, // 👈 notify your own team
+          subject: `✅ Customer Confirmed Delivery - ${title} [${paymentRef}]`,
+          html: htmlContent,
+        }
 
-      const info = await this.transporter.sendMail(mailOptions)
+        const info = await this.transporter.sendMail(mailOptions)
 
-      console.log('📩 Notification sent to Symphonii:', info.messageId)
+        console.log('📩 Notification sent to Symphonii:', info.messageId)
 
-      return {
-        success: true,
-        messageId: info.messageId,
-        message: 'Customer delivery confirmation sent to Symphonii',
-      }
-    } catch (error) {
-      console.error('Error sending customer confirmation to Symphonii:', error)
-      return {
-        success: false,
-        error: error.message,
-        message: 'Failed to notify Symphonii of delivery confirmation',
+        return {
+          success: true,
+          messageId: info.messageId,
+          message: 'Customer delivery confirmation sent to Symphonii',
+        }
+      } catch (error) {
+        console.error('Error sending customer confirmation to Symphonii:', error)
+        return {
+          success: false,
+          error: error.message,
+          message: 'Failed to notify Symphonii of delivery confirmation',
+        }
       }
     }
-  }
 
   // Test email configuration
   async testEmailConfiguration() {
-    try {
-      const result = await this.transporter.verify()
-      console.log('✅ Email configuration successful')
-      return result
-    } catch (error) {
-      console.error('❌ Email configuration failed:', error.message)
-      throw error
+      try {
+        const result = await this.transporter.verify()
+        console.log('✅ Email configuration successful')
+        return result
+      } catch (error) {
+        console.error('❌ Email configuration failed:', error.message)
+        throw error
+      }
     }
   }
-}
 
 module.exports = ComicEmailService

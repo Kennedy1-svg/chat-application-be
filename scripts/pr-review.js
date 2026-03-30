@@ -96,7 +96,27 @@ function buildMarkdownReport(eslintOutput, auditOutput, semgrepOutput, platoOutp
       const platoData = JSON.parse(platoOutput)
       if (platoData.summary && platoData.summary.average && Array.isArray(platoData.reports) && platoData.reports.length > 0) {
         const avgMaintainability = parseFloat(platoData.summary.average.maintainability).toFixed(2)
-        md += `Average Maintainability Index: **${avgMaintainability}** (Checked ${platoData.reports.length} files)\n\n`
+        md += `Average Maintainability Index: **${avgMaintainability}**\n\n`
+        md += `| File | Maintainability | Cyclomatic Complexity | Logical SLOC | JSHint Errors |\n`
+        md += `| ---- | --------------- | --------------------- | ------------ | ------------- |\n`
+        
+        // Sort reports by maintainability (lowest first) to highlight problematic files
+        const sortedReports = platoData.reports.sort((a, b) => {
+          const aMaint = a.complexity && a.complexity.maintainability ? a.complexity.maintainability : 100;
+          const bMaint = b.complexity && b.complexity.maintainability ? b.complexity.maintainability : 100;
+          return aMaint - bMaint;
+        });
+
+        sortedReports.forEach(report => {
+          const file = report.info && report.info.fileShort ? report.info.fileShort : 'Unknown';
+          const maint = (report.complexity && report.complexity.maintainability ? report.complexity.maintainability : 0).toFixed(2);
+          const complex = report.complexity && report.complexity.methodAggregate && report.complexity.methodAggregate.cyclomatic ? report.complexity.methodAggregate.cyclomatic : 0;
+          const sloc = report.complexity && report.complexity.methodAggregate && report.complexity.methodAggregate.sloc && report.complexity.methodAggregate.sloc.logical ? report.complexity.methodAggregate.sloc.logical : 0;
+          const jshint = report.jshint && report.jshint.messages ? report.jshint.messages : 0;
+          
+          md += `| \`${file}\` | ${maint} | ${complex} | ${sloc} | ${jshint} |\n`
+        });
+        md += '\n'
       } else {
         md += '✅ Plato run completed.\n\n'
       }

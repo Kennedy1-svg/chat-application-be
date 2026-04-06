@@ -6,7 +6,6 @@ const Chat = require('../models/Chat')
 const User = require('../models/User')
 
 const JWT_SECRET = process.env.JWT_SECRET || 'keyboard-cat'
-
 function verifySocketToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET)

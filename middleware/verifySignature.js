@@ -1,7 +1,6 @@
 const crypto = require('crypto')
 
 const SHARED_SECRET = process.env.SHARED_SECRET || 'super_secret_key'
-
 // Utility: recreate HMAC signature
 function generateSignature(secret, timestamp, body) {
   return crypto

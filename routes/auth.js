@@ -5,7 +5,6 @@ const User = require('../models/User')
 const router = express.Router()
 const JWT_SECRET = process.env.JWT_SECRET || 'keyboard-cat'
 const JWT_EXPIRES_IN = '7d'
-
 // Signup
 router.post('/signup', async (req, res, next) => {
   try {

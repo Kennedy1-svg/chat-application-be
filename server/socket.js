@@ -13,7 +13,6 @@ function verifySocketToken(token) {
     return null
   }
 }
-
 function setupSocket(server) {
   const io = new Server(server, {
     cors: {

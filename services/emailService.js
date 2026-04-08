@@ -10,7 +10,6 @@ const bcrypt = require('bcryptjs')
 
 class ComicEmailService {
   constructor() {
-   
 
     console.log('see this', process.env.EMAIL_USER, process.env.EMAIL_APP_PASSWORD)
 

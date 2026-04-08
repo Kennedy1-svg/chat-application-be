@@ -10,14 +10,7 @@ const bcrypt = require('bcryptjs')
 
 class ComicEmailService {
   constructor() {
-    // Configure email transporter (using Gmail as example)
-    // this.transporter = nodemailer.createTransport({
-    //   service: 'gmail',
-    //   auth: {
-    //     user: process.env.EMAIL_USER,
-    //     pass: process.env.EMAIL_APP_PASSWORD // Use app-specific password
-    //   }
-    // });
+   
 
     console.log('see this', process.env.EMAIL_USER, process.env.EMAIL_APP_PASSWORD)
 

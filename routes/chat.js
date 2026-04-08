@@ -20,7 +20,6 @@ function auth(req, res, next) {
   }
 }
 
-// Get user's chats
 router.get('/', auth, async (req, res, next) => {
   try {
     const chats = await Chat.find({ participants: req.user.id })

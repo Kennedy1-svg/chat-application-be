@@ -6,7 +6,6 @@ const Message = require('../models/Message')
 const jwt = require('jsonwebtoken')
 const router = express.Router()
 const JWT_SECRET = process.env.JWT_SECRET || 'keyboard-cat'
-
 // simple middleware
 function auth(req, res, next) {
   const header = req.headers.authorization

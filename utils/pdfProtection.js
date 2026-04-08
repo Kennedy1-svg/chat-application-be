@@ -13,6 +13,8 @@ class PDFProtectionService {
     this.ensureTempDirectory()
   }
 
+
+  
   async ensureTempDirectory() {
     try {
       await fs.access(this.tempDirectory)

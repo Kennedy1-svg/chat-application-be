@@ -12,8 +12,6 @@ class PDFProtectionService {
     // Ensure temp directory exists
     this.ensureTempDirectory()
   }
-
-
   
   async ensureTempDirectory() {
     try {

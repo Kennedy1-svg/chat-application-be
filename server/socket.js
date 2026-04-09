@@ -5,8 +5,10 @@ const Message = require('../models/Message')
 const Chat = require('../models/Chat')
 const User = require('../models/User')
 
-const JWT_SECRET = process.env.JWT_SECRET || 'keyboard-cat'
 
+
+
+const JWT_SECRET = process.env.JWT_SECRET || 'keyboard-cat'
 function verifySocketToken(token) {
   try {
     return jwt.verify(token, JWT_SECRET)
@@ -14,7 +16,6 @@ function verifySocketToken(token) {
     return null
   }
 }
-
 function setupSocket(server) {
   const io = new Server(server, {
     cors: {

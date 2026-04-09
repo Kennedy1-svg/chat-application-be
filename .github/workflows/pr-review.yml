@@ -1,0 +1,47 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+
+
+    steps:
+      # 1. Checkout code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Run PR Review script
+      - name: PR Review Script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/pr-review.js
+
+      # 5. Build project
+      - name: Build project
+        run: npm run build
+
+      # 6. Upload PR Review Report (Fallback)
+      - name: Upload PR Review Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-review-report
+          path: pr-review-report.md

@@ -17,7 +17,6 @@ function auth(req, res, next) {
   }
 }
 
-// Get messages for chat with pagination
 router.get('/:chatId', auth, async (req, res, next) => {
   try {
     const { chatId } = req.params

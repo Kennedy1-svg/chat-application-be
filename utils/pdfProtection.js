@@ -12,7 +12,6 @@ class PDFProtectionService {
     // Ensure temp directory exists
     this.ensureTempDirectory()
   }
-  
   async ensureTempDirectory() {
     try {
       await fs.access(this.tempDirectory)
@@ -36,7 +35,6 @@ class PDFProtectionService {
 
     return password
   }
-
   /**
    * Get the path to the original comic PDF
    * @param {string} comicTitle - Title of the comic

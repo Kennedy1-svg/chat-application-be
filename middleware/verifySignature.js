@@ -9,8 +9,6 @@ function generateSignature(secret, timestamp, body) {
     .digest('hex')
 }
 
-
-
 function verifySignature(req, res, next) {
   const timestamp = req.headers['x-timestamp']
   const signature = req.headers['x-signature']
